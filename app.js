@@ -216,9 +216,6 @@
 
   function activeHabits() {
     return state.data.habits
-      .filter(function (habit) {
-        return !habit.archivedAt;
-      })
       .sort(function (left, right) {
         return left.createdAt.localeCompare(right.createdAt);
       });
@@ -282,7 +279,7 @@
     return "";
   }
 
-  function archiveHabit(habitId) {
+  function deleteHabit(habitId) {
     var habit = state.data.habits.find(function (item) {
       return item.id === habitId;
     });
@@ -297,7 +294,12 @@
       return;
     }
 
-    habit.archivedAt = new Date().toISOString();
+    state.data.habits = state.data.habits.filter(function (item) {
+      return item.id !== habitId;
+    });
+    state.data.habitDays = state.data.habitDays.filter(function (habitDay) {
+      return habitDay.habitId !== habitId;
+    });
     saveData();
     render();
   }
@@ -470,7 +472,7 @@
     }
 
     if (action === "delete-habit") {
-      archiveHabit(target.getAttribute("data-habit-id"));
+      deleteHabit(target.getAttribute("data-habit-id"));
     }
   }
 
