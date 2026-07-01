@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A calm personal habit streak tracker with local browser persistence."
+    />
+    <title>Streaks</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <dialog id="habit-dialog" aria-labelledby="habit-dialog-title">
+      <form id="habit-form" method="dialog" class="dialog-panel">
+        <div class="dialog-heading">
+          <h2 id="habit-dialog-title">Add habit</h2>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close">
+            <span aria-hidden="true">x</span>
+          </button>
+        </div>
+        <label class="field">
+          <span>Habit name</span>
+          <input
+            id="habit-name"
+            name="habitName"
+            autocomplete="off"
+            maxlength="80"
+            required
+            placeholder="Meditation"
+          />
+        </label>
+        <p id="habit-error" class="form-error" role="alert" aria-live="polite"></p>
+        <div class="dialog-actions">
+          <button class="secondary-button" type="button" data-close-dialog>Cancel</button>
+          <button class="primary-button" type="submit">Add habit</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
