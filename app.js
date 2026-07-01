@@ -288,7 +288,7 @@
     }
 
     var confirmed = window.confirm(
-      'Delete "' + habit.name + '"?\n\nThis removes it from Today.',
+      'Delete "' + habit.name + '"?\n\nThis removes the habit and its saved streak data.',
     );
     if (!confirmed) {
       return;
