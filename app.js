@@ -36,10 +36,37 @@
   }
 
   function normalizeData(data) {
+    var habits = data && Array.isArray(data.habits) ? data.habits : [];
+    var habitDaysByKey = {};
+
+    if (data && Array.isArray(data.habitDays)) {
+      data.habitDays.forEach(function (habitDay) {
+        if (!habitDay || !habitDay.habitId || !isDateString(habitDay.date)) {
+          return;
+        }
+
+        habitDaysByKey[habitDay.habitId + "|" + habitDay.date] = Object.assign({}, habitDay, {
+          id: habitDay.id || makeId("habit_day"),
+          status: normalizeHabitDayStatus(habitDay.status),
+          updatedAt: habitDay.updatedAt || new Date().toISOString(),
+        });
+      });
+    }
+
     return {
-      habits: data && Array.isArray(data.habits) ? data.habits : [],
-      habitDays: data && Array.isArray(data.habitDays) ? data.habitDays : [],
+      habits: habits,
+      habitDays: Object.keys(habitDaysByKey).map(function (key) {
+        return habitDaysByKey[key];
+      }),
     };
+  }
+
+  function normalizeHabitDayStatus(status) {
+    return status === "done" ? "done" : "not_done";
+  }
+
+  function isDateString(value) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(String(value));
   }
 
   function cloneData(data) {
@@ -96,8 +123,12 @@
       var rows = await response.json();
       if (rows.length && rows[0].data) {
         state.data = normalizeData(rows[0].data);
+        if (ensureHabitDayStatuses()) {
+          await saveRemoteData();
+        }
         saveLocalData();
       } else {
+        ensureHabitDayStatuses();
         await saveRemoteData();
       }
 
@@ -214,6 +245,40 @@
     return prefix + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2);
   }
 
+  function ensureHabitDayStatuses() {
+    var changed = false;
+    var today = osloToday();
+    var now = new Date().toISOString();
+
+    state.data.habits.forEach(function (habit) {
+      if (!habit.id) {
+        return;
+      }
+
+      var cursor = isDateString(habit.createdDate) ? habit.createdDate : today;
+      if (compareDates(cursor, today) > 0) {
+        cursor = today;
+      }
+
+      while (compareDates(cursor, today) <= 0) {
+        if (!findHabitDay(habit.id, cursor)) {
+          state.data.habitDays.push({
+            id: makeId("habit_day"),
+            habitId: habit.id,
+            date: cursor,
+            status: "not_done",
+            updatedAt: now,
+          });
+          changed = true;
+        }
+
+        cursor = addDays(cursor, 1);
+      }
+    });
+
+    return changed;
+  }
+
   function activeHabits() {
     return state.data.habits
       .sort(function (left, right) {
@@ -274,6 +339,7 @@
       createdDate: osloToday(),
       createdAt: new Date().toISOString(),
     });
+    ensureHabitDayStatuses();
     saveData();
     render();
     return "";
@@ -512,6 +578,9 @@
     handleAction(event);
   });
 
+  if (ensureHabitDayStatuses()) {
+    saveLocalData();
+  }
   render();
   loadRemoteData();
 })();
