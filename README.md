@@ -13,6 +13,11 @@ configured. Until then, it falls back to `localStorage` in the current browser.
 Dates are stored as `YYYY-MM-DD` calendar strings, and the app calculates Today
 in the `Europe/Oslo` timezone.
 
+Each habit day is stored in `data.habitDays` with a `status` of either `done`
+or `not_done`. The app creates `not_done` records by default, including skipped
+days since a habit was created, so future history views can render from explicit
+database data instead of guessing from missing records.
+
 ## Supabase setup
 
 1. Create a free Supabase project.
